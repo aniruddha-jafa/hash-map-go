@@ -20,6 +20,7 @@ func NewHashMapChaining[K string, V any](cap uint) *HashMapChaining[K, V] {
 
 func (m *HashMapChaining[K, V]) Put(key K, val V) {
 	m.buckets[m.hash(string(key))].push(key, val)
+	m.n += 1
 }
 
 func (m *HashMapChaining[K, V]) GetOrDefault(key K, defaultVal V) (V) {
