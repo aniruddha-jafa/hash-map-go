@@ -14,6 +14,8 @@ func TestCountsChaining(t *testing.T) {
 	if err != nil {
 		panic("Unable to open file")
 	}
+	defer f.Close()
+	
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanWords)
 
