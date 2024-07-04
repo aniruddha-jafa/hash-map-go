@@ -4,7 +4,7 @@ import "fmt"
 
 type HashMapChaining[K string, V any] struct {
 	cap uint // number of buckets
-	n uint // number of entries
+	size uint // number of entries
 	loadFactor float64 // desired upper bound for load factor
 	buckets []linkedList[K, V] // each bucket holds a linked list
 	_currentCompares uint
@@ -12,7 +12,7 @@ type HashMapChaining[K string, V any] struct {
 
 func NewHashMapChaining[K string, V any](cap uint, loadFactor float64) *HashMapChaining[K, V] {
 	m := &HashMapChaining[K, V]{cap: cap, loadFactor: loadFactor}
-	m.n = 0
+	m.size = 0
 	m.buckets = make([]linkedList[K, V], cap)
 	for i := 0; i < int(m.cap); i++ {
 		m.buckets[i] = linkedList[K, V]{}
@@ -21,12 +21,12 @@ func NewHashMapChaining[K string, V any](cap uint, loadFactor float64) *HashMapC
 }
 
 func (m *HashMapChaining[K, V]) Put(key K, val V) {
-	if float64(m.n) / float64(m.cap) > m.loadFactor {
+	if float64(m.size) / float64(m.cap) > m.loadFactor {
 		m.resize(m.cap * 2)
 	}
 	exists := m.buckets[m.hash(string(key))].Push(key, val)
 	if !exists {
-		m.n++
+		m.size++
 	}
 }
 
@@ -51,8 +51,12 @@ func (m *HashMapChaining[K, V]) clearNumCompares() {
 	m._currentCompares = 0
 }
 
+func (m *HashMapChaining[K, V]) Size() uint {
+	return m.size
+}
+
 func (m *HashMapChaining[K, V]) String() string {
-	return fmt.Sprintf("<HashMapChaining n=%d, cap=%d, loadFactor=%f, _currentCompares=%d>", m.n, m.cap, m.loadFactor, m._currentCompares)
+	return fmt.Sprintf("<HashMapChaining n=%d, cap=%d, loadFactor=%f, _currentCompares=%d>", m.size, m.cap, m.loadFactor, m._currentCompares)
 }
 
 func (m *HashMapChaining[K, V]) resize(newCap uint) {
@@ -70,26 +74,10 @@ func (m *HashMapChaining[K, V]) resize(newCap uint) {
 
 func (m *HashMapChaining[K, V]) copyTo(other *HashMapChaining[K, V]) {
 	other.cap = m.cap
-	other.n = m.n
+	other.size = m.size
 	other.loadFactor = m.loadFactor
 	other.buckets = m.buckets
 	other._currentCompares = m._currentCompares
-}
-
-func (m *HashMapChaining[K, V]) print() {
-	count := 0
-	fmt.Printf("{\n")
-	for i := 0; i < int(m.cap); i++ {
-		node := m.buckets[i].head
-		// length := m.buckets[i].n
-		for node != nil {
-			fmt.Printf("%s: %d, ", node.key, node.val)
-			node = node.next
-			count++
-		}
-	}
-	fmt.Printf("}\n")
-	fmt.Printf("Length: %d\n", count)
 }
 
 func (m *HashMapChaining[K, V]) hash(key string) uint32 {

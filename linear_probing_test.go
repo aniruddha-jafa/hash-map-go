@@ -8,7 +8,7 @@ import (
 
 func TestCountsLinearProbing(t *testing.T) {
 	inbuiltMap := make(map[string]int, 8)
-	customMap := NewHashMapLinearProbing[string, uint](DefaultCapacity, DefaultLoadFactor)
+	var customMap HashMap[string, uint] = NewHashMapLinearProbing[string, uint](DefaultCapacity, DefaultLoadFactor)
 
 	f, err := os.Open("./tale.txt")
 	if err != nil {
@@ -30,8 +30,8 @@ func TestCountsLinearProbing(t *testing.T) {
 		customMap.Put(w, customMap.GetOrDefault(w, 0) + 1)
 		customMap.clearNumCompares()
 	}
-	if customMap.n != uint(len(inbuiltMap)) {
-		t.Errorf("Expected length=%d, got=%d", len(inbuiltMap), customMap.n)
+	if customMap.Size() != uint(len(inbuiltMap)) {
+		t.Errorf("Expected length=%d, got=%d", len(inbuiltMap), customMap.Size())
 	}
 	for w, expectedCount := range inbuiltMap {
 		actualCount, ok := customMap.Get(w)
