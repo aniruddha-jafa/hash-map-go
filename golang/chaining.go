@@ -19,12 +19,21 @@ func NewHashMapChaining[K string, V any](cap uint) *HashMapChaining[K, V] {
 }
 
 func (m *HashMapChaining[K, V]) Put(key K, val V) {
-	m.buckets[m.hash(string(key))].push(key, val)
+	m.buckets[m.hash(string(key))].Push(key, val)
 	m.n += 1
 }
 
 func (m *HashMapChaining[K, V]) GetOrDefault(key K, defaultVal V) (V) {
-	return m.buckets[m.hash(string(key))].getOrDefault(key, defaultVal)
+	return m.buckets[m.hash(string(key))].GetOrDefault(key, defaultVal)
+}
+
+func (m *HashMapChaining[K, V]) Get(key K) (V, bool) {
+	val, ok := m.buckets[m.hash(string(key))].Get(key)
+	var dummyVal V
+	if !ok {
+		return dummyVal, false
+	}
+	return val, true
 }
 
 func (m *HashMapChaining[K, V]) hash(key string) uint32 {
