@@ -1,16 +1,15 @@
 package main
 
-import "fmt"
-
 type HashMapLinearProbing[K string, V any] struct {
 	cap uint // number of slots
 	n uint // number of entries
+	loadFactor float64 // desired upper bound for load factor
 	keys []K 
 	values []V
 }
 
-func NewHashMapLinearProbing[K string, V any](cap uint) *HashMapLinearProbing[K, V] {
-	m := &HashMapLinearProbing[K, V]{cap: cap}
+func NewHashMapLinearProbing[K string, V any](cap uint, loadFactor float64) *HashMapLinearProbing[K, V] {
+	m := &HashMapLinearProbing[K, V]{cap: cap, loadFactor: loadFactor}
 	m.n = 0
 	m.keys = make([]K, cap)
 	m.values = make([]V, cap)
@@ -24,10 +23,8 @@ func NewHashMapLinearProbing[K string, V any](cap uint) *HashMapLinearProbing[K,
 //
 // Double the size if load exceeds 50%
 func (m *HashMapLinearProbing[K, V]) Put(key K, val V) {
-	if m.n >= m.cap / 2 {
-		m.resize(m.cap * 2)
-		fmt.Printf("resized to: %d", m.cap)
-		fmt.Println(m.keys, m.values)
+	if float64(m.n) / float64(m.cap) > m.loadFactor {
+		m = m.resize(m.cap * 2)
 	}
 	var keyNullVal K
 	var i uint32 = 0
@@ -62,15 +59,15 @@ func (m *HashMapLinearProbing[K, V]) Get(key K) (V, bool) {
 	return valueNullVal, false
 }
 
-func (m *HashMapLinearProbing[K, V]) resize(newCap uint) {
-	newMap := NewHashMapLinearProbing[K, V](newCap)
+func (m *HashMapLinearProbing[K, V]) resize(newCap uint) *HashMapLinearProbing[K, V] {
+	newMap := NewHashMapLinearProbing[K, V](newCap, m.loadFactor)
 	var keyNullValue K
 	for i := 0; i < int(m.cap); i++ {
 		if m.keys[i] != keyNullValue {
 			newMap.Put(m.keys[i], m.values[i])
 		}
 	}
-	m = newMap
+	return newMap
 }
 
 

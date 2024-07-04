@@ -5,7 +5,7 @@ import (
 )
 
 func TestHashMap(t *testing.T) {
-	h := NewHashMapChaining[string, int](DefaultCapacity)
+	h := NewHashMapChaining[string, int](DefaultCapacity, DefaultLoadFactor)
 	words := []string{
 		"ant", "ant", "ant",
 		"bat",
