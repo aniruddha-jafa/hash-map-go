@@ -8,6 +8,7 @@ import (
 // Single linked list
 type linkedList[K comparable, V any] struct {
 	head *node[K, V]
+	size uint // number of items
 }
 
 // Node for singly linked list
@@ -21,15 +22,19 @@ type node[K comparable, V any] struct {
 //
 // If the key already exists update its value,
 // else add a new node at the head of the list.
-func (l *linkedList[K, V]) Push(key K, val V) {
+//
+// Returns a bool if they key already exists
+func (l *linkedList[K, V]) Push(key K, val V) (exists bool) {
 	// check for existing key
 	for curr := l.head; curr != nil; curr = curr.next {
 		if curr.key == key {
 			curr.val = val
-			return
+			return true
 		}
 	}
 	l.head = &node[K, V]{key: key, val: val, next: l.head}
+	l.size++
+	return false
 }
 
 func (l *linkedList[K, V]) Get(key K) (V, bool) {

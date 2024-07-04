@@ -24,8 +24,10 @@ func (m *HashMapChaining[K, V]) Put(key K, val V) {
 	if float64(m.n) / float64(m.cap) > m.loadFactor {
 		m.resize(m.cap * 2)
 	}
-	m.buckets[m.hash(string(key))].Push(key, val)
-	m.n += 1
+	exists := m.buckets[m.hash(string(key))].Push(key, val)
+	if !exists {
+		m.n++
+	}
 }
 
 func (m *HashMapChaining[K, V]) GetOrDefault(key K, defaultVal V) (V) {
@@ -41,11 +43,11 @@ func (m *HashMapChaining[K, V]) Get(key K) (V, bool) {
 	return val, true
 }
 
-func (m *HashMapChaining[K, V]) GetNumCompares() uint {
+func (m *HashMapChaining[K, V]) getNumCompares() uint {
 	return m._currentCompares
 }
 
-func (m *HashMapChaining[K, V]) ClearNumCompares() {
+func (m *HashMapChaining[K, V]) clearNumCompares() {
 	m._currentCompares = 0
 }
 
@@ -62,7 +64,7 @@ func (m *HashMapChaining[K, V]) resize(newCap uint) {
 			node = node.next
 		}
 	}
-	newMap.ClearNumCompares()
+	newMap.clearNumCompares()
 	newMap.copyTo(m)
 }
 
@@ -72,6 +74,22 @@ func (m *HashMapChaining[K, V]) copyTo(other *HashMapChaining[K, V]) {
 	other.loadFactor = m.loadFactor
 	other.buckets = m.buckets
 	other._currentCompares = m._currentCompares
+}
+
+func (m *HashMapChaining[K, V]) print() {
+	count := 0
+	fmt.Printf("{\n")
+	for i := 0; i < int(m.cap); i++ {
+		node := m.buckets[i].head
+		// length := m.buckets[i].n
+		for node != nil {
+			fmt.Printf("%s: %d, ", node.key, node.val)
+			node = node.next
+			count++
+		}
+	}
+	fmt.Printf("}\n")
+	fmt.Printf("Length: %d\n", count)
 }
 
 func (m *HashMapChaining[K, V]) hash(key string) uint32 {
