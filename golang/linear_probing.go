@@ -17,8 +17,13 @@ func NewHashMapLinearProbing[K string, V any](cap uint) *HashMapLinearProbing[K,
 	return m
 }
 
+// Inserts or updates a key with the given value.
+//
+// If the key already exists update the value,
+// else write to first available null slot in the probe sequence
+//
+// Double the size if load exceeds 50%
 func (m *HashMapLinearProbing[K, V]) Put(key K, val V) {
-	// resize when load exceeds 50%
 	if m.n >= m.cap / 2 {
 		m.resize(m.cap * 2)
 		fmt.Printf("resized to: %d", m.cap)
@@ -26,14 +31,12 @@ func (m *HashMapLinearProbing[K, V]) Put(key K, val V) {
 	}
 	var keyNullVal K
 	var i uint32 = 0
-	// if key already exists, update the value
 	for i = m.hash(string(key)); m.keys[i] != keyNullVal; i = (i + 1) % uint32(m.cap) {
 		if m.keys[i] == key {
 			m.values[i] = val
 			return
 		}
 	}
-	// else write to first null slot
 	m.keys[i] = key 
 	m.values[i] = val
 	m.n++
@@ -51,7 +54,6 @@ func (m *HashMapLinearProbing[K, V]) Get(key K) (V, bool) {
 	var keyNullVal K
 	var valueNullVal V 
 	var i uint32 = 0
-	// if key already exists, update the value
 	for i = m.hash(string(key)); m.keys[i] != keyNullVal; i = (i + 1) % uint32(m.cap) {
 		if m.keys[i] == key {
 			return m.values[i], true
