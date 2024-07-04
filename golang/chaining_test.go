@@ -1,26 +1,46 @@
 package main
 
 import (
+	"bufio"
+	"os"
 	"testing"
 )
 
-func TestHashMap(t *testing.T) {
-	h := NewHashMapChaining[string, int](DefaultCapacity, DefaultLoadFactor)
-	words := []string{
-		"ant", "ant", "ant",
-		"bat",
-		"cat", "cat",
+func TestCountsChaining(t *testing.T) {
+	inbuiltMap := make(map[string]int, 8)
+	customMap := NewHashMapChaining[string, uint](DefaultCapacity, 8)
+
+	f, err := os.Open("./tale.txt")
+	if err != nil {
+		panic("Unable to open file")
 	}
-	for _, w := range words {
-		h.Put(w, h.GetOrDefault(w, 0) + 1)
+	scanner := bufio.NewScanner(f)
+	scanner.Split(bufio.ScanWords)
+
+	for scanner.Scan() {
+		w := scanner.Text()
+		// add to inbuilt map
+		_, ok := inbuiltMap[w]
+		if !ok {
+			inbuiltMap[w] = 0
+		}
+		inbuiltMap[w]++
+
+		// add to custom map
+		customMap.Put(w, customMap.GetOrDefault(w, 0) + 1)
+		customMap.clearNumCompares()
 	}
-	if val := h.GetOrDefault("ant", 0); val != 3 {
-		t.Errorf("got=%d, want=%d", val, 3)
+	if customMap.n != uint(len(inbuiltMap)) {
+		t.Errorf("Expected length=%d, got=%d", len(inbuiltMap), customMap.n)
 	}
-	if val := h.GetOrDefault("bat", 0); val != 1 {
-		t.Errorf("got=%d, want=%d", val, 1)
-	}
-	if val := h.GetOrDefault("cat", 0); val != 2 {
-		t.Errorf("got=%d, want=%d", val, 2)
+	for w, expectedCount := range inbuiltMap {
+		actualCount, ok := customMap.Get(w)
+		if !ok {
+			t.Errorf("%s not found in map", w)
+			continue
+		}
+		if expectedCount != int(actualCount) {
+			t.Errorf("for word=%s, expected=%d, got=%d", w, expectedCount, actualCount)
+		}	
 	}
 }
