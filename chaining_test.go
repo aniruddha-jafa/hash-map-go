@@ -8,7 +8,7 @@ import (
 
 func TestCountsChaining(t *testing.T) {
 	inbuiltMap := make(map[string]int, 8)
-	var customMap HashMap[string, uint] = NewHashMapChaining[string, uint](DefaultCapacity, 8)
+	var customMap HashMap[string, uint] = NewHashMapChaining[string, uint](DefaultCapacity, DefaultLoadFactor)
 
 	f, err := os.Open("./tale.txt")
 	if err != nil {

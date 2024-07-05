@@ -2,6 +2,10 @@ package main
 
 import "fmt"
 
+// We don't want a bucket to have more than
+// 8 entries on average, since this will lead to slower lookups
+const AvgEntriesPerBucket uint = 8 
+
 type HashMapChaining[K string, V any] struct {
 	cap uint // number of buckets
 	size uint // number of entries
@@ -21,7 +25,7 @@ func NewHashMapChaining[K string, V any](cap uint, loadFactor float64) *HashMapC
 }
 
 func (m *HashMapChaining[K, V]) Put(key K, val V) {
-	if float64(m.size) / float64(m.cap) > m.loadFactor {
+	if float64(m.size) / float64(m.cap * AvgEntriesPerBucket) > m.loadFactor {
 		m.resize(m.cap * 2)
 	}
 	exists := m.buckets[m.hash(string(key))].Push(key, val)
