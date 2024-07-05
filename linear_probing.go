@@ -90,7 +90,6 @@ func (m *HashMapLinearProbing[K, V]) resize(newCap uint) {
 			newMap.Put(m.keys[i], m.values[i])
 		}
 	}
-	newMap.clearNumCompares() // reset compares count to 0
 	newMap.copyTo(m)
 }
 

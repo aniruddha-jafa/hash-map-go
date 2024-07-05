@@ -76,7 +76,6 @@ func (m *HashMapChaining[K, V]) resize(newCap uint) {
 			node = node.next
 		}
 	}
-	newMap.clearNumCompares() // reset compares count to 0
 	newMap.copyTo(m)
 }
 
