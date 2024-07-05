@@ -25,7 +25,7 @@ func NewHashMapLinearProbing[K string, V any](cap uint, loadFactor float64) *Has
 // If the key already exists update the value,
 // else write to first available null slot in the probe sequence
 //
-// Double the size if load exceeds 50%
+// Double the size if load exceeds the load factor
 func (m *HashMapLinearProbing[K, V]) Put(key K, val V) {
 	if float64(m.size) / float64(m.cap) > m.loadFactor {
 		m.resize(m.cap * 2)
@@ -90,7 +90,7 @@ func (m *HashMapLinearProbing[K, V]) resize(newCap uint) {
 			newMap.Put(m.keys[i], m.values[i])
 		}
 	}
-	newMap.clearNumCompares()
+	newMap.clearNumCompares() // reset compares count to 0
 	newMap.copyTo(m)
 }
 

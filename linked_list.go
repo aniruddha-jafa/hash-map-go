@@ -23,36 +23,42 @@ type node[K comparable, V any] struct {
 // If the key already exists update its value,
 // else add a new node at the head of the list.
 //
-// Returns a bool if they key already exists
-func (l *linkedList[K, V]) Push(key K, val V) (exists bool) {
+// Returns - 
+// a bool indicating if the key already existed in the hash map
+// the number of equality comparisons used
+func (l *linkedList[K, V]) Push(key K, val V) (bool, uint) {
+	var compares uint = 0
 	// check for existing key
 	for curr := l.head; curr != nil; curr = curr.next {
+		compares++
 		if curr.key == key {
 			curr.val = val
-			return true
+			return true, compares
 		}
 	}
 	l.head = &node[K, V]{key: key, val: val, next: l.head}
 	l.size++
-	return false
+	return false, compares
 }
 
-func (l *linkedList[K, V]) Get(key K) (V, bool) {
+func (l *linkedList[K, V]) Get(key K) (V, bool, uint) {
+	var compares uint = 0
 	for curr := l.head; curr != nil; curr = curr.next {
+		compares++
 		if (curr.key == key) {
-			return curr.val.(V), true 
+			return curr.val.(V), true, compares
 		}
 	}
 	var dummyVal V 
-	return dummyVal, false
+	return dummyVal, false, compares
 }
 
-func (l *linkedList[K, V]) GetOrDefault(key K, defaultVal V) (V) {
-	val, ok := l.Get(key)
+func (l *linkedList[K, V]) GetOrDefault(key K, defaultVal V) (V, uint) {
+	val, ok, compares := l.Get(key)
 	if !ok {
-		return defaultVal
+		return defaultVal, compares
 	}
-	return val
+	return val, compares
 }
 
 func (l *linkedList[K, V]) String() string {

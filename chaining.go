@@ -28,18 +28,22 @@ func (m *HashMapChaining[K, V]) Put(key K, val V) {
 	if float64(m.size) / float64(m.cap * AvgEntriesPerBucket) > m.loadFactor {
 		m.resize(m.cap * 2)
 	}
-	exists := m.buckets[m.hash(string(key))].Push(key, val)
+	exists, compares := m.buckets[m.hash(string(key))].Push(key, val)
 	if !exists {
 		m.size++
 	}
+	m._currentCompares += compares
 }
 
 func (m *HashMapChaining[K, V]) GetOrDefault(key K, defaultVal V) (V) {
-	return m.buckets[m.hash(string(key))].GetOrDefault(key, defaultVal)
+	val, compares := m.buckets[m.hash(string(key))].GetOrDefault(key, defaultVal)
+	m._currentCompares += compares
+	return val
 }
 
 func (m *HashMapChaining[K, V]) Get(key K) (V, bool) {
-	val, ok := m.buckets[m.hash(string(key))].Get(key)
+	val, ok, compares := m.buckets[m.hash(string(key))].Get(key)
+	m._currentCompares += compares
 	var dummyVal V
 	if !ok {
 		return dummyVal, false
@@ -72,7 +76,7 @@ func (m *HashMapChaining[K, V]) resize(newCap uint) {
 			node = node.next
 		}
 	}
-	newMap.clearNumCompares()
+	newMap.clearNumCompares() // reset compares count to 0
 	newMap.copyTo(m)
 }
 
