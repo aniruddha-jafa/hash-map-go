@@ -8,7 +8,7 @@ import (
 
 func TestCountsLinearProbing(t *testing.T) {
 	inbuiltMap := make(map[string]int, 8)
-	var customMap HashMap[string, uint] = NewHashMapLinearProbing[string, uint](DefaultCapacity, DefaultLoadFactor)
+	var customMap HashMap[string, uint] = NewHashMapLinearProbing[string, uint](DefaultCapacity, DefaultLoadFactorProbing)
 
 	f, err := os.Open("./tale.txt")
 	if err != nil {

@@ -4,7 +4,7 @@ import "fmt"
 
 // We don't want a bucket to have more than
 // 8 entries on average, since this will lead to slower lookups
-const AvgEntriesPerBucket uint = 8 
+const DefaultLoadFactorChaining uint = 8
 
 type HashMapChaining[K string, V any] struct {
 	cap uint // number of buckets
@@ -25,7 +25,7 @@ func NewHashMapChaining[K string, V any](cap uint, loadFactor float64) *HashMapC
 }
 
 func (m *HashMapChaining[K, V]) Put(key K, val V) {
-	if float64(m.size) / float64(m.cap * AvgEntriesPerBucket) > m.loadFactor {
+	if m.LoadFactor() >= m.loadFactor {
 		m.resize(m.cap * 2)
 	}
 	exists, compares := m.buckets[m.hash(string(key))].Push(key, val)
@@ -33,6 +33,10 @@ func (m *HashMapChaining[K, V]) Put(key K, val V) {
 		m.size++
 	}
 	m._currentCompares += compares
+}
+
+func (m *HashMapChaining[K, V]) LoadFactor() float64 {
+	return float64(m.size) / float64(m.cap)
 }
 
 func (m *HashMapChaining[K, V]) GetOrDefault(key K, defaultVal V) (V) {
@@ -49,14 +53,6 @@ func (m *HashMapChaining[K, V]) Get(key K) (V, bool) {
 		return dummyVal, false
 	}
 	return val, true
-}
-
-func (m *HashMapChaining[K, V]) getNumCompares() uint {
-	return m._currentCompares
-}
-
-func (m *HashMapChaining[K, V]) clearNumCompares() {
-	m._currentCompares = 0
 }
 
 func (m *HashMapChaining[K, V]) Size() uint {
@@ -76,6 +72,7 @@ func (m *HashMapChaining[K, V]) resize(newCap uint) {
 			node = node.next
 		}
 	}
+	newMap.clearNumCompares()
 	newMap.copyTo(m)
 }
 
@@ -85,6 +82,14 @@ func (m *HashMapChaining[K, V]) copyTo(other *HashMapChaining[K, V]) {
 	other.loadFactor = m.loadFactor
 	other.buckets = m.buckets
 	other._currentCompares = m._currentCompares
+}
+
+func (m *HashMapChaining[K, V]) getNumCompares() uint {
+	return m._currentCompares
+}
+
+func (m *HashMapChaining[K, V]) clearNumCompares() {
+	m._currentCompares = 0
 }
 
 func (m *HashMapChaining[K, V]) hash(key string) uint32 {

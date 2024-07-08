@@ -1,7 +1,6 @@
 package main
 
 const DefaultCapacity uint = 8
-const DefaultLoadFactor float64 = 0.5
 
 // HashMap defines a common interface for hash maps, also known as an associative array
 type HashMap[K string, V any] interface {
@@ -21,6 +20,10 @@ type HashMap[K string, V any] interface {
 
 	// Returns a string representation of the hash map.
 	String() string
+
+	// Returns the load factor for the hash map
+	// Load factor is defined as := number of elements / number of buckets
+	LoadFactor() float64
 
 	// Gives the number of equality comparisons used internally by the hash map.
 	getNumCompares() uint 

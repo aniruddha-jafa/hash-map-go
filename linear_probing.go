@@ -2,6 +2,8 @@ package main
 
 import "fmt"
 
+const DefaultLoadFactorProbing float64 = 0.5
+
 type HashMapLinearProbing[K string, V any] struct {
 	cap uint // number of slots
 	size uint // number of entries
@@ -27,7 +29,7 @@ func NewHashMapLinearProbing[K string, V any](cap uint, loadFactor float64) *Has
 //
 // Double the size if load exceeds the load factor
 func (m *HashMapLinearProbing[K, V]) Put(key K, val V) {
-	if float64(m.size) / float64(m.cap) > m.loadFactor {
+	if m.LoadFactor() >= m.loadFactor {
 		m.resize(m.cap * 2)
 	}
 	var keyNullVal K
@@ -42,6 +44,10 @@ func (m *HashMapLinearProbing[K, V]) Put(key K, val V) {
 	m.keys[i] = key 
 	m.values[i] = val
 	m.size++
+}
+
+func (m *HashMapLinearProbing[K, V]) LoadFactor() float64 {
+	return float64(m.size) / float64(m.cap)
 }
 
 func (m *HashMapLinearProbing[K, V]) GetOrDefault(key K, defaultVal V) (V) {
@@ -65,14 +71,6 @@ func (m *HashMapLinearProbing[K, V]) Get(key K) (V, bool) {
 	return valueNullVal, false
 }
 
-func (m *HashMapLinearProbing[K, V]) getNumCompares() uint {
-	return m._currentCompares
-}
-
-func (m *HashMapLinearProbing[K, V]) clearNumCompares() {
-	m._currentCompares = 0
-}
-
 func (m *HashMapLinearProbing[K, V]) String() string {
 	return fmt.Sprintf("<HashMapLinearProbing n=%d, cap=%d, loadFactor=%f, _currentCompares=%d, keys=%s>", m.size, m.cap, m.loadFactor, m._currentCompares, m.keys)
 }
@@ -80,7 +78,6 @@ func (m *HashMapLinearProbing[K, V]) String() string {
 func (m *HashMapLinearProbing[K, V]) Size() uint {
 	return m.size
 }
-
 
 func (m *HashMapLinearProbing[K, V]) resize(newCap uint) {
 	newMap := NewHashMapLinearProbing[K, V](newCap, m.loadFactor)
@@ -90,9 +87,9 @@ func (m *HashMapLinearProbing[K, V]) resize(newCap uint) {
 			newMap.Put(m.keys[i], m.values[i])
 		}
 	}
+	newMap.clearNumCompares()
 	newMap.copyTo(m)
 }
-
 
 // copyTo copies this map into another map `other`
 func (m *HashMapLinearProbing[K, V]) copyTo(other *HashMapLinearProbing[K, V]) {
@@ -102,6 +99,14 @@ func (m *HashMapLinearProbing[K, V]) copyTo(other *HashMapLinearProbing[K, V]) {
 	other.keys = m.keys
 	other.values = m.values
 	other._currentCompares = m._currentCompares
+}
+
+func (m *HashMapLinearProbing[K, V]) getNumCompares() uint {
+	return m._currentCompares
+}
+
+func (m *HashMapLinearProbing[K, V]) clearNumCompares() {
+	m._currentCompares = 0
 }
 
 func (m *HashMapLinearProbing[K, V]) hash(key string) uint32 {
