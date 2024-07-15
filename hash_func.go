@@ -7,7 +7,7 @@ func Hash(key string) uint32 {
 const fnvOffsetBasis32 uint32 = 2166136261
 const fnvPrime32 uint32 = 16777619
 
-// fnv1a32 implements the 32-bit version of the FNV-1a non-cryptographic hash function
+// fnv1a32 implements the 32-bit version of the FNV-1a (Fowler-Noll-Vo) non-cryptographic hash function
 // 
 // The hash value is initialized to the fnv_offset_basis for 32 bits
 // 
@@ -18,15 +18,6 @@ func fnv1a32(data string) uint32 {
   for i := 0; i < len(data); i++ {
 		hash ^= uint32(data[i])
 		hash *= fnvPrime32
-	}
-	return hash
-}
-
-func djb32(data string) uint32 {
-	var hash uint32 = 5381
-	for i := 0; i < len(data); i++ {
-		//  hash(i) = hash(i - 1) * 33 + str[i]
-		hash = (hash << 5 + hash) + uint32(data[i])
 	}
 	return hash
 }
